@@ -13,7 +13,7 @@ public class Model {
     private final static String DATABASE = "BankingSystem";
     private final static String HOST = "mysql://localhost:3306/";
     private final static String USERNAME = "root";
-    private final static String PASSWORD = "";
+    private final static String PASSWORD = System.getenv("MYSQL_PASSWORD");
 
     public static Connection connectSQL() {
         String urlStructure = "jdbc:" + HOST + DATABASE;
@@ -28,7 +28,7 @@ public class Model {
         }
     }
 
-    public boolean validateArguments(HashMap<String, Object> data) {
+    public boolean validateArguments(HashMap<String, Object> data) throws Exception {
         Field[] fields = this.getClass().getDeclaredFields();
 
         try {
@@ -49,7 +49,8 @@ public class Model {
     }
 
     public void insertData(HashMap<String, Object> data) {
-        if (validateArguments(data)) {
+        try {
+            validateArguments(data);
             String tableName = this.getClass().getSimpleName();
             String query = "INSERT INTO " + tableName + " " +
                     "(" + SQLBuilder.getFieldName(data) + ") " +
@@ -67,11 +68,10 @@ public class Model {
             } catch (Exception exception) {
                 exception.printStackTrace();
             }
-
             System.out.println(query);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
-
-
     }
 
 }

@@ -24,7 +24,7 @@ public class BankingSystem {
             }
         } else {
             User user = new User();
-            user.createOne("John Albert", "Bayog", "Flores", "08-19-2003", "Nueva Ecija", "Philippines");
+            user.createOne("test", "test", "test", "08-19-2003", "Nueva Ecija", "Philippines");
         }
     }
 
