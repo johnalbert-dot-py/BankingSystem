@@ -22,9 +22,6 @@ public class BankingSystem {
                 Migration mig = new Migration(toMigrate);
                 mig.migrateFields();
             }
-        } else {
-            User user = new User();
-            user.createOne("test", "test", "test", "08-19-2003", "Nueva Ecija", "Philippines");
         }
     }
 
