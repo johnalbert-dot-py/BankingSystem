@@ -23,6 +23,11 @@ public class BankingSystem {
                 mig.migrateFields();
             }
         }
+        /* *
+        User user = new User();
+        user.getOne(1);
+        System.out.println(user.getFirstName());
+        * */
     }
 
 

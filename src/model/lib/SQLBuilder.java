@@ -8,6 +8,7 @@ import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.HashMap;
+import java.util.List;
 
 public class SQLBuilder {
     public static String buildConstraints(ModelField modelField, String structure, Field field, ParsedDataType type)  {
@@ -106,5 +107,53 @@ public class SQLBuilder {
             } catch (Exception ignored) {}
             index++;
         }
+    }
+
+    public static String buildSelectStatement(String table,
+                                              Model.Operator operation,
+                                              List<String> fields,
+                                              List<String> where,
+                                              List<String> order,
+                                              List<String> group,
+                                              int limit) {
+        /* *
+         * SELECT * FROM Users;
+         * SELECT firstName, lastName FROM Users;
+         * SELECT firstName, lastName FROM Users WHERE id = 2;
+         * SELECT firstName, lastName FROM Users WHERE id = 2 AND username = 'test';
+         * SELECT firstName, lastName FROM Users WHERE id = 2 AND username = 'test' ORDER BY firstName ASC;
+         * SELECT lastName, COUNT(*) FROM Users GROUP BY firstName;
+         * */
+
+        if (fields.size() == 0) {
+            fields.add("*");
+        }
+
+        String select = "SELECT " + String.join(", ", fields) + " FROM " + table;
+
+        if (where != null && order != null && order.size() > 0) {
+            // should add the ORDER BY clause
+            where.add(" ORDER BY " + String.join(", ", order));
+        }
+
+        if (where != null && group != null && group.size() > 0) {
+            // should add the GROUP BY clause
+            where.add(" GROUP BY " + String.join(", ", group));
+        }
+
+        // should add the WHERE clause
+        if (where != null && where.size() > 0){
+            if (where.size() > 1) {
+                select += " WHERE " + String.join(" " + operation.toString() + " ", where);
+            } else {
+                select += " WHERE " + String.join(" ", where);
+            }
+        }
+
+        if (limit > 0) {
+            select += " LIMIT " + limit;
+        }
+
+        return select;
     }
 }

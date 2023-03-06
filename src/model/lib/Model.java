@@ -1,12 +1,15 @@
 package model.lib;
 
 import annotations.ModelField;
+import model.lib.exceptions.DataNotFound;
 
 import java.lang.reflect.Field;
 import java.security.KeyException;
 import java.sql.*;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
+
 
 public class Model {
 
@@ -14,6 +17,11 @@ public class Model {
     private final static String HOST = "mysql://localhost:3306/";
     private final static String USERNAME = "root";
     private final static String PASSWORD = System.getenv("MYSQL_PASSWORD");
+
+    enum Operator {
+        AND,
+        OR
+    }
 
     public static Connection connectSQL() {
         String urlStructure = "jdbc:" + HOST + DATABASE;
@@ -28,7 +36,7 @@ public class Model {
         }
     }
 
-    public boolean validateArguments(HashMap<String, Object> data) throws Exception {
+    public void validateArguments(HashMap<String, Object> data) throws Exception {
         Field[] fields = this.getClass().getDeclaredFields();
 
         try {
@@ -43,9 +51,7 @@ public class Model {
             }
         } catch (Exception exception) {
             exception.printStackTrace();
-            return false;
         }
-        return false;
     }
 
     public void insertData(HashMap<String, Object> data) {
@@ -72,6 +78,56 @@ public class Model {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
+    }
+
+    public ResultSet getData(List<String> fields, List<String> where, Operator operator, List<String> orderBy, List<String> groupBy, int limit) {
+        /* *
+        *
+        * Example for each argument for this method:
+        * fields: username, firstName, lastName
+        * where: username = 'test'
+        * operator: AND, OR
+        *
+        * */
+        String tableName = this.getClass().getSimpleName();
+        String sql = SQLBuilder.buildSelectStatement(tableName, operator, fields, where, orderBy, groupBy, limit);
+        try {
+            return executeSQL(sql);
+        } catch (Exception exception) {
+            exception.printStackTrace();
+            return null;
+        }
+    }
+
+    public ResultSet getOne(List<String> fields, List<String> where, Operator operator) throws Exception {
+        ResultSet result = getData(fields, where, operator, null, null, 1);
+        try {
+            if (result.next()) {
+                return result;
+            } else {
+                throw new DataNotFound(this.getClass().getSimpleName(), where);
+            }
+        } catch (SQLException exception) {
+            exception.printStackTrace();
+            throw new DataNotFound(this.getClass().getSimpleName(), where);
+        }
+    }
+
+    public ResultSet getAll(List<String> fields, List<String> where, Operator operator) {
+        return getData(fields, where, operator, null, null, 0);
+    }
+
+    public ResultSet executeSQL(String query) {
+        try {
+            Connection conn = connectSQL();
+            if (conn != null) {
+                PreparedStatement pstmt = conn.prepareStatement(query);
+                return pstmt.executeQuery();
+            }
+        } catch (Exception exception) {
+            exception.printStackTrace();
+        }
+        return null;
     }
 
 }
