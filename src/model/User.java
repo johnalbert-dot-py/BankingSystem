@@ -5,9 +5,12 @@ import model.lib.Model;
 import model.lib.enums.ParsedDataType;
 
 import java.sql.Date;
+import java.sql.ResultSet;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
 
 public class User extends Model {
@@ -41,6 +44,27 @@ public class User extends Model {
     @ModelField(foreignKey = "BankAccount", reference_to = "BankAccount(id)", foreignKeyType = ParsedDataType.INT)
     private BankAccount bankAccount;
 
+    public User() {
+    }
+
+    public User(String firstName,
+                String lastName,
+                String middleName,
+                String streetAddress,
+                String cityAddress,
+                Date birthDate,
+                String regionAddress,
+                String countryAddress) {
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.middleName = middleName;
+        this.streetAddress = streetAddress;
+        this.cityAddress = cityAddress;
+        this.birthDate = birthDate;
+        this.regionAddress = regionAddress;
+        this.countryAddress = countryAddress;
+    }
+    
     public void createOne(String firstName, String middleName, String lastName, String birthDate, String regionAddress, String countryAddress) {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MM-dd-yyyy", Locale.ENGLISH);
         Date date = Date.valueOf(LocalDate.parse(birthDate, formatter));
@@ -54,13 +78,36 @@ public class User extends Model {
         insertData(data);
     }
 
+    public User getOne(int id) {
+        // This will get a User object on database via its ID.
+        // This will also set the values of the fields of this object.t
+        List<String> fields = new ArrayList<>();
+        fields.add("*");
+        List<String> where = new ArrayList<>();
+        where.add("id = " + id);
+
+        try {
+            ResultSet result = super.getOne(fields, where, null);
+            this.firstName = result.getString("firstName");
+            this.lastName = result.getString("lastName");
+            this.middleName = result.getString("middleName");
+            this.streetAddress = result.getString("streetAddress");
+            this.cityAddress = result.getString("cityAddress");
+            this.birthDate = result.getDate("birthDate");
+            this.regionAddress = result.getString("regionAddress");
+            this.countryAddress = result.getString("countryAddress");
+            return this;
+        }catch (Exception e) {
+            e.printStackTrace();
+            return new User();
+        }
+    }
+
     public int getId() {
         return id;
     }
 
-    public String getFirstName() {
-        return firstName;
-    }
+    public String getFirstName() { return firstName; }
 
     public String getLastName() {
         return lastName;
